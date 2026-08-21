@@ -28,11 +28,9 @@ Policy Engine
 Risk Engine
 ↓
 Decision
---- Tests ---
-(.venv) schmithvillers@Bhumikas-MacBook-Air sentinelcode % pytest
-======================== test session starts ========================
+### Sprint 1 : Tests
+
 platform darwin -- Python 3.11.1, pytest-9.1.1, pluggy-1.6.0
-rootdir: /Users/schmithvillers/Documents/SDE/personal/sentinelcode
 configfile: pyproject.toml
 testpaths: tests
 collected 24 items                                                  
