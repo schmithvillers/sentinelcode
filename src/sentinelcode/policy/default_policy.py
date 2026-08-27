@@ -19,6 +19,7 @@ DEFAULT_POLICY = Policy(
         "python",
         "git",
         "npm",
+        "pip",
     ],
     allowed_network_hosts=[
         "github.com",

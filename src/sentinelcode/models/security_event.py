@@ -4,10 +4,8 @@ from datetime import datetime
 
 @dataclass
 class SecurityEvent:
-    """
-    Represents a recorded SentinelCode security event.
-    """
-
+    event_id: str
+    timestamp: datetime
     agent: str
     tool: str
     action: str
@@ -15,4 +13,3 @@ class SecurityEvent:
     decision: str
     risk_score: int
     reason: str
-    timestamp: datetime

@@ -6,14 +6,15 @@ from sentinelcode.policy.policy_engine import PolicyEngine
 from sentinelcode.risk.risk_engine import RiskEngine
 
 from sentinelcode.runtime.runtime import SentinelRuntime
-
+from sentinelcode.events.event_logger import EventLogger
 
 
 def main():
 
     runtime = SentinelRuntime(
         PolicyEngine(DEFAULT_POLICY),
-        RiskEngine()
+        RiskEngine(),
+        EventLogger()
     )
 
 
