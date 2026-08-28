@@ -2,6 +2,15 @@
 
 Runtime security and verification control plane for autonomous coding agents.
 
+### Security Tooling
+
+SentinelCode uses Gitleaks for secret detection.
+
+Install Gitleaks:
+
+```bash
+brew install gitleaks
+
 ## Current Sprint
 
 Sprint 1 complete:
