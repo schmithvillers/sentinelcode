@@ -249,3 +249,89 @@ def test_detects_high_risk_package_installation():
     )
 
     assert package_threat.severity == "HIGH"
+def test_detects_sensitive_data_transformation_and_network_sequence():
+    detector = BehaviorDetector()
+
+    events = [
+        create_event(
+            tool="filesystem",
+            action="read",
+            resource=".env",
+        ),
+        create_event(
+            tool="shell",
+            action="execute",
+            resource="base64 .env",
+        ),
+        create_event(
+            tool="network",
+            action="request",
+            resource="attacker.com",
+        ),
+    ]
+
+    assert detector.detect_suspicious_action_sequence(events) is True
+def test_transformation_without_network_is_not_detected():
+    detector = BehaviorDetector()
+
+    events = [
+        create_event(
+            tool="filesystem",
+            action="read",
+            resource=".env",
+        ),
+        create_event(
+            tool="shell",
+            action="execute",
+            resource="base64 .env",
+        ),
+    ]
+
+    assert detector.detect_suspicious_action_sequence(events) is False
+def test_network_without_transformation_is_not_suspicious_action_sequence():
+    detector = BehaviorDetector()
+
+    events = [
+        create_event(
+            tool="filesystem",
+            action="read",
+            resource=".env",
+        ),
+        create_event(
+            tool="network",
+            action="request",
+            resource="github.com",
+        ),
+    ]
+
+    assert detector.detect_suspicious_action_sequence(events) is False
+def test_analyze_detects_suspicious_action_sequence():
+    detector = BehaviorDetector()
+
+    events = [
+        create_event(
+            tool="filesystem",
+            action="read",
+            resource=".env",
+        ),
+        create_event(
+            tool="shell",
+            action="execute",
+            resource="base64 .env",
+        ),
+        create_event(
+            tool="network",
+            action="request",
+            resource="attacker.com",
+        ),
+    ]
+
+    threats = detector.analyze(events)
+
+    threat = next(
+        threat
+        for threat in threats
+        if threat.threat_type == "SUSPICIOUS_ACTION_SEQUENCE"
+    )
+
+    assert threat.severity == "CRITICAL"

@@ -21,6 +21,7 @@ class BehaviorDetector:
         "SENSITIVE_FILE_ACCESS": "HIGH",
         "POSSIBLE_SECRET_EXFILTRATION": "CRITICAL",
         "SUSPICIOUS_SHELL_NETWORK_ACTIVITY": "HIGH",
+        "SUSPICIOUS_ACTION_SEQUENCE": "CRITICAL",
     }
     def __init__(self):
         self.package_detector = PackageInstallationDetector()
@@ -81,6 +82,43 @@ class BehaviorDetector:
                 return True
 
         return False
+    
+    def detect_suspicious_action_sequence( self, events: list[SecurityEvent], ) -> bool:
+        """
+        Detect sensitive data being transformed before
+        network activity.
+        """
+
+        sensitive_access = False
+        transformation = False
+
+        for event in events:
+
+            if self.detect_sensitive_file_access(event):
+                sensitive_access = True
+                continue
+
+            if not sensitive_access:
+                continue
+
+            if event.tool == "shell" and any(
+                keyword in event.resource.lower()
+                for keyword in (
+                    "base64",
+                    "encode",
+                    "encrypt",
+                    "gzip",
+                    "compress",
+                )
+            ):
+                transformation = True
+                continue
+
+            if transformation and event.tool == "network":
+                return True
+
+        return False
+
     def analyze( self, events: list[SecurityEvent]) -> list[ThreatEvent]:
 
         threats = []
@@ -135,7 +173,22 @@ class BehaviorDetector:
                     related_events=events,
                 )
             )
-
+        # Detect sensitive data transformation followed by network activity
+        if self.detect_suspicious_action_sequence(events):
+            threats.append(
+                ThreatEvent(
+                    threat_type="SUSPICIOUS_ACTION_SEQUENCE",
+                    severity=self.THREAT_SEVERITY[
+                        "SUSPICIOUS_ACTION_SEQUENCE"
+                    ],
+                    reason=(
+                        "Sensitive file access was followed "
+                        "by data transformation and network activity."
+                    ),
+                    detected_at=datetime.now(),
+                    related_events=events,
+                )
+            )
         # Detect package installations
         for event in events:
 
