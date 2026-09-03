@@ -7,7 +7,12 @@ name = "sentinelcode"
 version = "0.1.0"
 description = "Runtime security and verification control plane for autonomous coding agents"
 requires-python = ">=3.11"
-dependencies = [ "pytest", "google-cloud-pubsub", "google-cloud-bigquery", ]
+dependencies = [
+    "pytest",
+    "google-cloud-pubsub",
+    "google-cloud-bigquery",
+    "google-genai",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
