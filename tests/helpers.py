@@ -1,19 +1,24 @@
 from datetime import datetime
+from unittest.mock import MagicMock
 
 from sentinelcode.models.security_event import SecurityEvent
 from sentinelcode.models.threat_event import ThreatEvent
+
 from sentinelcode.events.event_logger import EventLogger
-from sentinelcode.events.in_memory_event_bus import (
-    InMemoryEventBus,
-)
+from sentinelcode.events.in_memory_event_bus import InMemoryEventBus
 
 from sentinelcode.policy.default_policy import DEFAULT_POLICY
 from sentinelcode.policy.policy_engine import PolicyEngine
+
 from sentinelcode.risk.risk_engine import RiskEngine
+
 from sentinelcode.runtime.runtime import SentinelRuntime
 
-def create_security_event():
+from sentinelcode.security.security_agent import SecurityAgent
+from sentinelcode.security.security_orchestrator import SecurityOrchestrator
 
+
+def create_security_event():
     return SecurityEvent(
         event_id="evt-001",
         timestamp=datetime.now(),
@@ -28,7 +33,6 @@ def create_security_event():
 
 
 def create_threat_event():
-
     return ThreatEvent(
         threat_type="SENSITIVE_FILE_ACCESS",
         severity="HIGH",
@@ -38,9 +42,9 @@ def create_threat_event():
             create_security_event()
         ],
     )
-    
-def create_runtime():
 
+
+def create_runtime():
     event_bus = InMemoryEventBus()
 
     event_logger = EventLogger(
@@ -57,7 +61,6 @@ def create_runtime():
 
 
 def create_runtime_with_bus():
-
     event_bus = InMemoryEventBus()
 
     event_logger = EventLogger(
@@ -71,19 +74,60 @@ def create_runtime_with_bus():
     )
 
     return runtime, event_bus
-class FakeFuture:
 
+
+def create_security_runtime():
+    """
+    Create a runtime with the security orchestrator connected.
+
+    Gemini is mocked so tests do not require Google Cloud
+    credentials or network access.
+    """
+
+    event_bus = InMemoryEventBus()
+
+    gemini = MagicMock()
+
+    gemini.analyze.return_value = """
+    {
+        "is_threat": false,
+        "threat_type": "none",
+        "severity": "low",
+        "reason": "No contextual threat detected."
+    }
+    """
+
+    security_agent = SecurityAgent(gemini)
+
+    security_orchestrator = SecurityOrchestrator(
+        security_agent=security_agent,
+    )
+
+    event_logger = EventLogger(
+        event_bus=event_bus,
+        security_analyzer=security_orchestrator.analyze_event,
+        sequence_analyzer=security_orchestrator.analyze_events,
+    )
+
+    runtime = SentinelRuntime(
+        PolicyEngine(DEFAULT_POLICY),
+        RiskEngine(),
+        event_logger,
+    )
+
+    return runtime, event_bus, security_orchestrator, gemini
+
+
+class FakeFuture:
     def result(self):
         return "message-id-001"
 
 
 class FakePublisher:
-
     def __init__(self):
         self.messages = []
 
     def publish(self, topic, data):
-
         self.messages.append(
             {
                 "topic": topic,
@@ -93,10 +137,9 @@ class FakePublisher:
 
         return FakeFuture()
 
+
 class FakeBigQueryClient:
-
     def __init__(self):
-
         self.inserted_rows = []
 
     def insert_rows_json(
@@ -104,7 +147,6 @@ class FakeBigQueryClient:
         table,
         rows,
     ):
-
         self.inserted_rows.append(
             {
                 "table": table,

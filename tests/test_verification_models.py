@@ -1,5 +1,6 @@
 from sentinelcode.verification.models import (
     VerificationCheck,
+    VerificationFinding,
     VerificationResult,
     VerificationStatus,
 )
@@ -55,3 +56,38 @@ def test_failed_verification_result():
 
     assert result.passed is False
     assert result.failed is True
+
+
+def test_verification_finding():
+    finding = VerificationFinding(
+        scanner="bandit",
+        finding_type="SAST",
+        severity="HIGH",
+        message="Use of subprocess with shell=True",
+        file="main.py",
+        line=10,
+        identifier="B602",
+    )
+
+    assert finding.scanner == "bandit"
+    assert finding.finding_type == "SAST"
+    assert finding.severity == "HIGH"
+    assert finding.file == "main.py"
+    assert finding.line == 10
+    assert finding.identifier == "B602"
+
+
+def test_verification_finding_supports_dependency():
+    finding = VerificationFinding(
+        scanner="pip-audit",
+        finding_type="DEPENDENCY",
+        severity="HIGH",
+        message="Known vulnerability",
+        package="requests",
+        version="2.19.0",
+        identifier="PYSEC-TEST-001",
+    )
+
+    assert finding.package == "requests"
+    assert finding.version == "2.19.0"
+    assert finding.identifier == "PYSEC-TEST-001"

@@ -11,6 +11,21 @@ class VerificationStatus(str, Enum):
 
 
 @dataclass
+class VerificationFinding:
+    """Normalized security or verification finding."""
+
+    scanner: str
+    finding_type: str
+    severity: str
+    message: str
+    file: str | None = None
+    line: int | None = None
+    package: str | None = None
+    version: str | None = None
+    identifier: str | None = None
+
+
+@dataclass
 class VerificationCheck:
     name: str
     status: VerificationStatus

@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from sentinelcode.verification.dependencies import DependencyScanner
 from sentinelcode.verification.compiler import CompilerVerifier
 from sentinelcode.verification.models import (
     VerificationCheck,
@@ -20,11 +20,15 @@ class VerificationPipeline:
         test_runner: TestRunner | None = None,
         sast: SASTVerifier | None = None,
         secret_scanner: SecretScanner | None = None,
+        dependency_scanner: DependencyScanner | None = None,
     ) -> None:
         self.compiler = compiler or CompilerVerifier()
         self.test_runner = test_runner or TestRunner()
         self.sast = sast or SASTVerifier()
         self.secret_scanner = secret_scanner or SecretScanner()
+        self.dependency_scanner = (
+            dependency_scanner or DependencyScanner()
+        )
 
     def verify(self, project_path: str | Path) -> VerificationResult:
         checks: list[VerificationCheck] = []
@@ -45,6 +49,9 @@ class VerificationPipeline:
 
         secret_check = self.secret_scanner.verify(project_path)
         checks.append(secret_check)
+
+        dependency_check = self.dependency_scanner.verify(project_path)
+        checks.append(dependency_check)
 
         return self._build_result(checks)
 

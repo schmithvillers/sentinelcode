@@ -1,3 +1,4 @@
 pytest
 bandit
 google-genai
+pip-audit

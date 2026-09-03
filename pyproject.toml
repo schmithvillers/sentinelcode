@@ -12,6 +12,7 @@ dependencies = [
     "google-cloud-pubsub",
     "google-cloud-bigquery",
     "google-genai",
+    "pip-audit",
 ]
 
 [tool.pytest.ini_options]
