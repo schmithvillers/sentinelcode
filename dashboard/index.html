@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelCode - SentinelBench Dashboard</title>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            background: #f5f7fa;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        header {
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .metric {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            color: #6b7280;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .blocked {
+            font-weight: 600;
+        }
+
+        .allowed {
+            font-weight: 600;
+        }
+
+        .note {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .comparison-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .comparison-box h3 {
+            margin-top: 0;
+        }
+
+        @media (max-width: 800px) {
+            .metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header>
+        <h1>SentinelCode</h1>
+        <div class="subtitle">
+            SentinelBench Security Evaluation Dashboard
+        </div>
+    </header>
+
+    <section class="metrics">
+        <div class="metric">
+            <div class="metric-label">Scenarios Tested</div>
+            <div class="metric-value" id="total-runs">-</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">Attacks Blocked</div>
+            <div class="metric-value" id="attacks-blocked">-</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">Attack Prevention</div>
+            <div class="metric-value" id="prevention-rate">-</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">Detection Rate</div>
+            <div class="metric-value" id="detection-rate">-</div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Baseline vs. Protected</h2>
+
+        <div class="comparison">
+            <div class="comparison-box">
+                <h3>Baseline</h3>
+                <p>Attack success rate:
+                    <strong id="baseline-attack-rate">-</strong>
+                </p>
+                <p>Detection rate:
+                    <strong id="baseline-detection-rate">-</strong>
+                </p>
+                <p>Task success rate:
+                    <strong id="baseline-task-rate">-</strong>
+                </p>
+            </div>
+
+            <div class="comparison-box">
+                <h3>SentinelCode Protected</h3>
+                <p>Attack success rate:
+                    <strong id="protected-attack-rate">-</strong>
+                </p>
+                <p>Detection rate:
+                    <strong id="protected-detection-rate">-</strong>
+                </p>
+                <p>Task success rate:
+                    <strong id="protected-task-rate">-</strong>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Scenario Results</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Scenario</th>
+                <th>Baseline</th>
+                <th>Protected</th>
+            </tr>
+            </thead>
+
+            <tbody id="scenario-table">
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Benchmark Scope</h2>
+
+        <p class="note">
+            SentinelBench is a controlled benchmark consisting of five
+            deterministic attack scenarios. These measurements describe
+            performance on this benchmark and should not be interpreted
+            as a guarantee of protection against all real-world attacks.
+        </p>
+    </section>
+
+</div>
+
+<script>
+async function loadResults() {
+    const response = await fetch(
+        "../evaluation_results/sentinelbench_results.json"
+    );
+
+    if (!response.ok) {
+        throw new Error("Unable to load benchmark results.");
+    }
+
+    const data = await response.json();
+
+    const baseline = data.baseline;
+    const protectedResults = data.protected;
+    const comparison = data.comparison;
+
+    document.getElementById("total-runs").textContent =
+        protectedResults.total_runs;
+
+    document.getElementById("attacks-blocked").textContent =
+        protectedResults.attacks_blocked;
+
+    document.getElementById("prevention-rate").textContent =
+        formatPercent(comparison.attack_prevention_rate);
+
+    document.getElementById("detection-rate").textContent =
+        formatPercent(protectedResults.detection_rate);
+
+    document.getElementById("baseline-attack-rate").textContent =
+        formatPercent(baseline.attack_success_rate);
+
+    document.getElementById("baseline-detection-rate").textContent =
+        formatPercent(baseline.detection_rate);
+
+    document.getElementById("baseline-task-rate").textContent =
+        formatPercent(baseline.task_success_rate);
+
+    document.getElementById("protected-attack-rate").textContent =
+        formatPercent(protectedResults.attack_success_rate);
+
+    document.getElementById("protected-detection-rate").textContent =
+        formatPercent(protectedResults.detection_rate);
+
+    document.getElementById("protected-task-rate").textContent =
+        formatPercent(protectedResults.task_success_rate);
+
+    renderScenarios(baseline.runs, protectedResults.runs);
+}
+
+
+function formatPercent(value) {
+    return `${(value * 100).toFixed(0)}%`;
+}
+
+
+function renderScenarios(baselineRuns, protectedRuns) {
+    const table = document.getElementById("scenario-table");
+
+    const protectedById = Object.fromEntries(
+        protectedRuns.map(run => [run.scenario_id, run])
+    );
+
+    for (const baselineRun of baselineRuns) {
+        const protectedRun = protectedById[baselineRun.scenario_id];
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${baselineRun.scenario_id}</td>
+            <td>${scenarioName(baselineRun.scenario_id)}</td>
+            <td class="allowed">
+                ${baselineRun.attack_succeeded ? "Attack succeeded" : "Blocked"}
+            </td>
+            <td class="blocked">
+                ${protectedRun.blocked ? "Blocked" : "Not blocked"}
+            </td>
+        `;
+
+        table.appendChild(row);
+    }
+}
+
+
+function scenarioName(id) {
+    const names = {
+        "PI-001": "Malicious repository instruction",
+        "SF-001": "Sensitive file access",
+        "EX-001": "Secret exfiltration sequence",
+        "PK-001": "High-risk package installation",
+        "VC-001": "Vulnerable generated code"
+    };
+
+    return names[id] || id;
+}
+
+
+loadResults().catch(error => {
+    console.error(error);
+});
+</script>
+
+</body>
+</html>
