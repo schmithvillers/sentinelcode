@@ -116,6 +116,8 @@ pytest -q
 The current test suite covers the runtime security components, detection logic, verification pipeline, evaluation framework, and dashboard validation.
 
 ## Project Structure
+
+```text
 sentinelcode/
 ├── dashboard/
 │   └── index.html
@@ -142,9 +144,11 @@ sentinelcode/
 │       ├── verification/
 │       └── workers/
 └── tests/
-
+```
 
 ## Core Flow
+
+```text
 Agent
   ↓
 ToolRequest
@@ -162,3 +166,4 @@ Security Event
 Detection / Security Analysis
   ↓
 Verification
+```
