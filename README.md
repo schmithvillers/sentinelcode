@@ -10,6 +10,7 @@ Install Gitleaks:
 
 ```bash
 brew install gitleaks
+```
 ## Current Sprint
 
 Sprint 5 focuses on evaluation, benchmarking, demonstration, and project polish.
@@ -60,6 +61,7 @@ The benchmark compares a baseline execution with a SentinelCode-protected execut
 Results are stored in:
 ```bash
 evaluation_results/sentinelbench_results.json
+```
 
 ## SentinelBench Dashboard
 
@@ -67,10 +69,12 @@ SentinelCode includes a lightweight dashboard for viewing the results of the con
 Start a local HTTP server from the project root:
 ```bash
 python -m http.server 8000
-
+```
 
 Then open:
+```
 http://localhost:8000/dashboard/
+```
 
 The dashboard displays:
 - Number of scenarios tested
@@ -107,6 +111,7 @@ SentinelBench is a deterministic and controlled benchmark consisting of five sce
 Run the complete test suite with:
 ```bash
 pytest -q
+```
 
 The current test suite covers the runtime security components, detection logic, verification pipeline, evaluation framework, and dashboard validation.
 
