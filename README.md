@@ -84,6 +84,13 @@ The dashboard displays:
 - Baseline vs. protected results
 - Individual scenario results
 
+## SentinelCode Demo
+
+Run the controlled SentinelBench scenarios in protected mode:
+
+```bash
+python -m sentinelcode.evaluation.demo
+
 ## Benchmark Results
 The current controlled SentinelBench run contains five scenarios.
 ### Baseline
